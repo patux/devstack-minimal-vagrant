@@ -48,6 +48,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network :forwarded_port, guest: 22, host: 8022
   #config.vm.network "public_network", bridge: 'en0: Wi-Fi (AirPort)', :use_dhcp_assigned_default_route => true
   config.vm.provider :virtualbox do |vb|
+    vb.customize ["modifyvm", :id, "--memory", "4096" ]
+    vb.customize ["modifyvm", :id, "--cpus", "4"]
     # you need this for openstack guests to talk to each other
     vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     # allows for stable mac addresses
