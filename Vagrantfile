@@ -23,6 +23,9 @@ RABBIT_PASSWORD=secrete
 SERVICE_PASSWORD=secrete
 SERVICE_TOKEN=a682f596-76f3-11e3-b3b2-e716f9080d50
 
+#OFFLINE=true
+#RECLONE=false
+
 GUEST_INTERFACE_DEFAULT=eth1
 HOST_IP_IFACE=eth1
 
@@ -40,23 +43,40 @@ su - vagrant -c '/home/vagrant/install_devstack.sh'
 SCRIPT
 
 macaddress = '0800274a508d'
+memory = 4096
+cpus = 4
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.box = "trusty64"
-  config.vm.box_url= "https://vagrantcloud.com/ubuntu/trusty64/version/1/provider/virtualbox.box"
+  config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+
   config.vm.provision "shell", inline: $script, keep_color: false
-  config.vm.network :private_network, ip: '10.10.10.40'
+  #config.vm.network :private_network, ip: '10.10.10.40'
   config.vm.network :forwarded_port, guest: 80, host: 8080
   config.vm.network :forwarded_port, guest: 22, host: 8022
-  #config.vm.network "public_network", bridge: 'en0: Wi-Fi (AirPort)', :use_dhcp_assigned_default_route => true
+  config.vm.network "public_network", bridge: 'en0: Wi-Fi (AirPort)', :use_dhcp_assigned_default_route => true
   config.vm.provider :virtualbox do |vb|
-    vb.customize ["modifyvm", :id, "--memory", "4096" ]
-    vb.customize ["modifyvm", :id, "--cpus", "4"]
+    vb.customize ["modifyvm", :id, "--memory", memory ]
+    vb.customize ["modifyvm", :id, "--cpus", cpus ]
     # you need this for openstack guests to talk to each other
     vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     # allows for stable mac addresses
     vb.customize ["modifyvm", :id, "--macaddress2", macaddress]
   end
+  config.vm.provider :vmware_fusion do |v, override|
+    override.vm.box = "trusty64_vmware"
+    override.vm.box_url = "https://vagrantcloud.com/CorbanRaun/boxes/trusty64/versions/1/providers/vmware_fusion.box"
+    v.vmx["memsize"] = memory
+    v.vmx["numvcpus"] =  cpus
+    v.vmx["vhv.enable"] = "TRUE" #Enable nested hypervisors to run x64 OS
+    v.vmx["ethernet1.generatedAddress"] = nil #If the vmx file contains an auto-generated MAC address, remove it
+    v.vmx["ethernet1.addressType"] = "static" #specify the MAC is static
+    v.vmx["ethernet1.present"] = "TRUE" #enable the NIC for the OS
+    v.vmx["ethernet1.address"] = macaddress #the MAC address
+    # you need this for openstack guests to talk to each other
+    v.vmx["ethernet1.noPromisc"] = "FALSE" # enable promisc on eth1
+  end
+
 
 end
