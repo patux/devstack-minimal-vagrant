@@ -64,16 +64,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # allows for stable mac addresses
     vb.customize ["modifyvm", :id, "--macaddress2", macaddress]
   end
-  config.vm.provider :vmware_fusion do |v, override|
-    override.vm.box = "trusty64_vmware"
-    override.vm.box_url = "https://vagrantcloud.com/CorbanRaun/boxes/trusty64/versions/1/providers/vmware_fusion.box"
-    v.vmx["memsize"] = memory
-    v.vmx["numvcpus"] =  cpus
-    v.vmx["ethernet1.generatedAddress"] = nil #If the vmx file contains an auto-generated MAC address, remove it
-    v.vmx["ethernet1.addressType"] = "static" #specify the MAC is static
-    v.vmx["ethernet1.address"] = macaddress #the MAC address
-    # you need this for openstack guests to talk to each other
-    v.vmx["ethernet1.noPromisc"] = "FALSE" # enable promisc on eth1
-  end
 
 end
